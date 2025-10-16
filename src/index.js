@@ -18,20 +18,21 @@ const app = express();
 
 app.use(cookieParser());
 
-const allowedOrigins = [ 'http://localhost:5173', "https://gestionioi-front.vercel.app"
+const allowedOrigins = [ 'http://localhost:5173', "https://gestionioi-front.vercel.app", "gestionioi-front-git-main-vanesols-projects.vercel.app", // rama Vercel"
 
 ];
 
 app.use(cors({
    origin: function (origin, callback) { 
       // allow requests with no origin
-      if(!origin) return callback(null, true);
-      if(allowedOrigins.includes(origin)) {
-         return callback(null, true);
+      if(!origin || allowedOrigins.includes(origin)) {
+         callback(null, true);
       } else {
-         return callback(new Error('Origin not allowed by CORS'));
+         console.log("cors bloqueado para:", origin);
+         callback(new Error('Origin not allowed by CORS'));
       }
-   },                                                        
+   },
+                                                            
    credentials: true 
 }));
 
