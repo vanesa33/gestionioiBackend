@@ -18,9 +18,21 @@ const app = express();
 
 app.use(cookieParser());
 
+const allowedOrigins = [ 'http://localhost:5173', "https://gestionioi-front.vercel.app"
+
+];
+
 app.use(cors({
-   origin: process.env.FRONTEND_URL || 'http://localhost:5173',
-   credentials: true
+   origin: function (origin, callback) { 
+      // allow requests with no origin
+      if(!origin) return callback(null, true);
+      if(allowedOrigins.includes(origin)) {
+         return callback(null, true);
+      } else {
+         return callback(new Error('Origin not allowed by CORS'));
+      }
+   },                                                        
+   credentials: true 
 }));
 
 
