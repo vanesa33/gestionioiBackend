@@ -14,7 +14,7 @@ app.use(morgan('dev'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// CORS Middleware personalizado para permitir cookies y preflight
+// CORS robusto
 const allowedOrigins = [
   "http://localhost:5173",
   "https://gestionioi-front.vercel.app",
@@ -24,16 +24,17 @@ const allowedOrigins = [
 app.use((req, res, next) => {
   const origin = req.headers.origin;
   if (!origin || allowedOrigins.includes(origin)) {
-    res.header("Access-Control-Allow-Origin", origin || "");
-    res.header("Access-Control-Allow-Credentials", "true");
-    res.header("Access-Control-Allow-Methods", "GET,POST,PUT,DELETE,OPTIONS");
-    res.header("Access-Control-Allow-Headers", "Content-Type,Authorization");
+    res.setHeader("Access-Control-Allow-Origin", origin || "");
+    res.setHeader("Access-Control-Allow-Credentials", "true");
+    res.setHeader("Access-Control-Allow-Methods", "GET,POST,PUT,DELETE,OPTIONS");
+    res.setHeader("Access-Control-Allow-Headers", "Content-Type,Authorization");
+
     if (req.method === "OPTIONS") {
-      return res.sendStatus(204); // Preflight responde OK
+      return res.sendStatus(204); // responder preflight correctamente
     }
-    next();
+    return next();
   } else {
-    res.status(403).send("CORS blocked");
+    return res.status(403).send("CORS blocked");
   }
 });
 
