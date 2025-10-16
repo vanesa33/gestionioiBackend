@@ -1,6 +1,5 @@
 const express = require('express');
 const morgan = require('morgan');
-const cors = require('cors');
 const cookieParser = require('cookie-parser');
 require('dotenv').config();
 
@@ -15,31 +14,28 @@ app.use(morgan('dev'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// CORS: dominios permitidos
+// CORS Middleware personalizado para permitir cookies y preflight
 const allowedOrigins = [
   "http://localhost:5173",
   "https://gestionioi-front.vercel.app",
   "https://gestionioi-front-git-main-vanesols-projects.vercel.app"
 ];
 
-app.use(cors({
-  origin: function(origin, callback) {
-    // Permitir requests sin origin (ej: Postman)
-    if (!origin || allowedOrigins.includes(origin)) {
-      callback(null, true);
-    } else {
-      console.log("❌ CORS bloqueado para:", origin);
-      callback(new Error('Origin not allowed by CORS'));
+app.use((req, res, next) => {
+  const origin = req.headers.origin;
+  if (!origin || allowedOrigins.includes(origin)) {
+    res.header("Access-Control-Allow-Origin", origin || "");
+    res.header("Access-Control-Allow-Credentials", "true");
+    res.header("Access-Control-Allow-Methods", "GET,POST,PUT,DELETE,OPTIONS");
+    res.header("Access-Control-Allow-Headers", "Content-Type,Authorization");
+    if (req.method === "OPTIONS") {
+      return res.sendStatus(204); // Preflight responde OK
     }
-  },
-  credentials: true
-}));
-
-// Manejo de preflight (OPTIONS)
-app.options("*", cors({
-  origin: allowedOrigins,
-  credentials: true
-}));
+    next();
+  } else {
+    res.status(403).send("CORS blocked");
+  }
+});
 
 // Rutas
 app.use("/api", userRouter);
