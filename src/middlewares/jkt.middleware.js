@@ -22,11 +22,11 @@ const verifyTokenUser = (req, res, next) => {
   try {
     const decoded = jwt.verify(token, process.env.JWT_SECRET);
     req.email = decoded.email;
-    req.role_ruid = decoded.role_ruid;
+    req.role_id = decoded.role_id;
     req.user = {
-      ruid: decoded.ruid,
+      id: decoded.id,
       email: decoded.email,
-      role_ruid: decoded.role_ruid
+      role_id: decoded.role_id
     };
 
     // Todo bien, pasamos al siguiente middleware
