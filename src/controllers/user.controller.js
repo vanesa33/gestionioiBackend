@@ -127,74 +127,59 @@ const register = async(req, res) => {
 
 
 
-const login = async(req, res) => {
-    try {
+const login = async (req, res) => {
+  try {
+    const { email, password } = req.body;
 
-        const {email, password} = req.body;
+    if (!email || !password) {
+      return res
+        .status(400)
+        .json({ message: "Faltan campos requeridos: email y password" });
+    }
 
-        if(!email || !password ){
-            return res
-            .status(400)
-            .json({ error: "Mising required fields: email, password"});
-        }
+    const user = await UserModel.findOneEmail(email);
+    if (!user) {
+      return res.status(404).json({ message: "Usuario no encontrado" });
+    }
 
-        const user = await UserModel.findOneEmail(email)
-        console.log("datos recibidos", req.body)
-        if(!user){
-            return res.status(404).json({ error: "User not found"});
-        }
+    const isMatch = await bcryptjs.compare(password, user.password);
+    if (!isMatch) {
+      return res.status(401).json({ message: "Credenciales inválidas" });
+    }
 
-        const isMatch = await bcryptjs.compare(password, user.password)
-        console.log("contraseña valida?", isMatch);
+    const token = jwt.sign( 
+      { id: user.ruid, email: user.email, role_id: user.role_id },
+      process.env.JWT_SECRET,
+      { expiresIn: "1h" }
+    );
 
-        if(!isMatch){
-            return res.status(401).json({ error: "Invalid credentials"});
-        }
+    // 🧠 Detecta si está en producción o en local
+    const isProd = process.env.NODE_ENV === "production";
 
-        const token = jwt.sign(
-            {id: user.ruid, email: user.email, role_id: user.role_id},        
-         process.env.JWT_SECRET,
-         {
-            expiresIn: "1h"
-         }
+    res.cookie("token", token, {
+      httpOnly: true,
+      secure: isProd, // 🔒 solo en HTTPS (Netlify + Render)
+      sameSite: isProd ? "None" : "Lax", // necesario para que Netlify y Render compartan cookies
+      maxAge: 3600000, // 1 hora
+    });
 
-        );
-
-        res.cookie('token', token, {
-            httpOnly: true,
-           // secure: false,
-           secure: process.env.NODE_ENV === 'production',
-            //sameSite: 'Lax',
-            sameSite: process.env.NODE_ENV === 'production' ? 'None' : 'Lax',
-            maxAge: 3600000
-        });
-
-        res.status(200).json({ user });
-
-        res.json({
-            ok: true,
-            token,
-            user: {
-                id: user.id,
-                name: user.name,
-                email: user.email
-            }
-        })
-
-       // return res.json({ok: true, msg: 'login exitoso'});
-
-       // return res.json({ ok: true, msg: token})
-
-
-    } catch (err) {
-        console.error("error en login:", err.message)
-       /* return res.status(500).json({
-        ok:false,
-        msg:"error server"
-    })*/
-}
+    res.json({
+      ok: true,
+      token,
+      user: {
+        id: user.id,
+        name: user.name,
+        email: user.email,
+      },
+    });
+  } catch (err) {
+    console.error("error en login:", err.message);
+    res.status(500).json({
+      ok: false,
+      message: "Error en el servidor al iniciar sesión",
+    });
+  }
 };
-
 const profile = async(req, res) => {
 
     try {
