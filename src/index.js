@@ -55,6 +55,7 @@ app.use(express.urlencoded({ extended:true}));
 
 app.use("/",userRouter);
 app.use("/api",taskRoutes);
+app-use("login",userRouter);
 
 app.use((err, req, res, next) => {
      return res.json({
