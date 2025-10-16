@@ -20,6 +20,7 @@ const app = express();
 app.use(cookieParser());
 
 const allowedOrigins = [ 'http://localhost:5173', 
+   "https://frontioi.netlify.app",
    "https://gestionioi-front.vercel.app", 
    "gestionioi-front-git-main-vanesols-projects.vercel.app", // rama Vercel"
 
