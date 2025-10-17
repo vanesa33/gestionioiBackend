@@ -147,6 +147,9 @@ const login = async (req, res) => {
       return res.status(401).json({ message: "Credenciales inválidas" });
     }
 
+      console.log("usuario encontrado:", user);
+
+
     const token = jwt.sign( 
       { id: user.ruid, email: user.email, role_id: user.role_id },
       process.env.JWT_SECRET,
