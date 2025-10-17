@@ -167,14 +167,15 @@ const login = async (req, res) => {
     });
 
     res.json({
-      ok: true,
-      token,
-      user: {
-        id: user.id,
-        name: user.name,
-        email: user.email,
-      },
-    });
+  ok: true,
+  token,
+  user: {
+    id: user.ruid,
+    username: user.username,
+    email: user.email
+  }
+});
+
   } catch (err) {
     console.error("error en login:", err.message);
     res.status(500).json({
