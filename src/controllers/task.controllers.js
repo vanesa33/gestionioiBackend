@@ -455,10 +455,12 @@ const createIngreso = async (req, res, next) => {
 
     // ID desde params
     const { id } = req.params;
+           const iid = parseInt(id,10);
+           
      
 
 
-    if (isNaN(id)) {
+    if (isNaN(iid)) {
       return res.status(400).json({ message: "ID inválido" });
     }
 
