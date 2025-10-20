@@ -447,85 +447,49 @@ const createIngreso = async (req, res, next) => {
   
 
    
-  const updateIngreso = async (req, res, next) => {
+const updateIngreso = async (req, res, next) => {
   try {
-    // Confirmar base conectada
-    const jwt_db = await pool.query("SELECT current_database()");
-    console.log("Base de datos conectada:", jwt_db.rows[0].current_database);
-
-    // ID desde params
     const { id } = req.params;
-           const iid = parseInt(id,10);
-           
-     
+    const iid = parseInt(id, 10);
 
-
-    if (isNaN(iid)) {
-      return res.status(400).json({ message: "ID inválido" });
-    }
+    if (isNaN(iid)) return res.status(400).json({ message: "ID inválido" });
 
     const {
-      equipo,
-      falla,
-      observa,
-      fecha,
-      nserie,
-      costo,
-      imagenurl,
-      repuesto,
-      manoobra,
-      total,
-      iva,
-      presu,
-      salida,
-      client_id,
-      //user_id
+      equipo, falla, observa, fecha, nserie, costo,
+      imagenurl, repuesto, manoobra, total, iva, presu,
+      salida, client_id
     } = req.body;
 
-    const salidaValida = salida && salida.trim() !== ""
-         ? new Date(salida).toISOString().split("T")[0]
-         : null; 
-    console.log("datos recibidos en update:", req.body)
+    const salidaValida = salida && salida.trim() !== "" 
+      ? new Date(salida).toISOString().split("T")[0] 
+      : null;
 
-    // Ejecutar update
+    console.log("Datos recibidos en update:", req.body);
+
     const result = await pool.query(
       `UPDATE ingreso SET
-        equipo = $1,
-        falla = $2,
-        observa = $3,
-        fecha = $4,
-        nserie = $5,
-        costo = $6,
-        imagenurl = $7,
-        repuesto = $8,
-        manoobra = $9,
-         total = $10,
-        iva = $11,
-        presu = $12,
-        salida = $13,
-        client_id = $14      
+        equipo = $1, falla = $2, observa = $3, fecha = $4, nserie = $5,
+        costo = $6, imagenurl = $7, repuesto = $8, manoobra = $9,
+        total = $10, iva = $11, presu = $12, salida = $13, client_id = $14
        WHERE iid = $15
        RETURNING *`,
-      [
-         equipo, falla, observa, fecha, nserie, costo,
-        imagenurl, repuesto, manoobra, total, iva, presu, salida || null, client_id, 
-        id // ← Usamos el de params
-      ]
+      [equipo, falla, observa, fecha, nserie, costo, imagenurl, repuesto,
+       manoobra, total, iva, presu, salidaValida, client_id, iid]
     );
+
+    if (result.rowCount === 0) return res.status(404).json({ message: "Orden no encontrada" });
 
     console.log("Filas afectadas:", result.rowCount);
     console.log("Datos nuevos:", result.rows);
 
-    if (result.rowCount === 0) {
-      return res.status(404).json({ message: "Orden no encontrada" });
-    }
-
     return res.json(result.rows[0]);
+
   } catch (error) {
     console.error("Error en UPDATE:", error);
     next(error);
   }
 };
+
 
 /////   todas las ordenes   ///
 
