@@ -362,13 +362,28 @@ const getAllIngreso = async (req, res, next) => {
 
 
 const createIngreso = async (req, res, next) => {
-  const { client_id, equipo, falla, observa, fecha, nserie, costo, imagenurl, repuesto, manoobra, total, iva, presu, salida } = req.body;
-  const  userId = req.user.id;
-
   try {
+    const {
+      client_id,
+      equipo,
+      falla,
+      observa,
+      fecha,
+      nserie,
+      costo,
+      imagenurl,
+      repuesto,
+      manoobra,
+      total,
+      iva,
+      presu,
+      salida
+    } = req.body;
+
+    const userId = req.user?.id || null;
     const year = new Date().getFullYear();
 
-    // Buscar el último número de orden de ese año
+    // Buscar último número de orden del año
     const resultLast = await pool.query(
       'SELECT numorden FROM ingreso WHERE numorden LIKE $1 ORDER BY numorden DESC LIMIT 1',
       [`ORD-${year}-%`]
@@ -383,20 +398,63 @@ const createIngreso = async (req, res, next) => {
 
     // Generar nuevo número de orden
     const newNumOrden = `ORD-${year}-${String(nextNumber).padStart(4, "0")}`;
-    console.log("backend recibio imagen", imagenurl);
+
+    // ✅ Normalizar valores numéricos vacíos
+    const costoVal = costo === "" || costo === null ? null : Number(costo);
+    const manoObraVal = manoobra === "" || manoobra === null ? null : Number(manoobra);
+    const totalVal = total === "" || total === null ? null : Number(total);
+    const ivaVal = iva === "" || iva === null ? null : Number(iva);
+
+    // ✅ Normalizar fecha de salida
+    const salidaValida = salida && salida.trim() !== ""
+      ? new Date(salida).toISOString().split("T")[0]
+      : null;
+
+    console.log("🟢 BODY recibido (create):", req.body);
+    console.log("🟣 Valores procesados:", {
+      costoVal, manoObraVal, totalVal, ivaVal, salidaValida
+    });
+    console.log("📦 Imagen URL:", imagenurl);
 
     // Insertar el ingreso
     const result = await pool.query(
-      `INSERT INTO ingreso (client_id, numorden, equipo, falla, observa, fecha, nserie, costo, imagenurl, repuesto, manoobra, total, iva, presu, salida, user_id)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16 ) RETURNING *`,
-      [client_id, newNumOrden, equipo, falla, observa, fecha, nserie, costo, imagenurl, repuesto, manoobra, total, iva, presu, salida, userId || null]
+      `INSERT INTO ingreso (
+        client_id, numorden, equipo, falla, observa, fecha, nserie,
+        costo, imagenurl, repuesto, manoobra, total, iva, presu, salida, user_id
+      )
+      VALUES (
+        $1, $2, $3, $4, $5, $6, $7,
+        $8, $9, $10, $11, $12, $13, $14, $15, $16
+      )
+      RETURNING *`,
+      [
+        client_id,
+        newNumOrden,
+        equipo,
+        falla,
+        observa,
+        fecha,
+        nserie,
+        costoVal,
+        imagenurl,
+        repuesto,
+        manoObraVal,
+        totalVal,
+        ivaVal,
+        presu,
+        salidaValida,
+        userId
+      ]
     );
 
+    console.log("✅ Orden creada:", result.rows[0].numorden);
     res.status(201).json(result.rows[0]);
   } catch (error) {
+    console.error("❌ Error en CREATE:", error);
     next(error);
   }
 };
+
 /////         Eliminar ingreso              //////
 
  const deleteIngreso = async (req, res, next) => {
@@ -449,21 +507,18 @@ const createIngreso = async (req, res, next) => {
    
 const updateIngreso = async (req, res, next) => {
   try {
-
-           console.log("🟢 URL PARAMS:", req.params);
+    console.log("🟢 URL PARAMS:", req.params);
     console.log("🟢 BODY:", req.body);
-           
+
     // Confirmar base conectada
     const jwt_db = await pool.query("SELECT current_database()");
     console.log("Base de datos conectada:", jwt_db.rows[0].current_database);
 
     // ID desde params
     const { id } = req.params;
-    //const iid = parseInt(id, 10);
-     
+    const iid = parseInt(id, 10);
 
-
-    if (isNaN(id)) {
+    if (isNaN(iid)) {
       return res.status(400).json({ message: "ID inválido" });
     }
 
@@ -482,15 +537,28 @@ const updateIngreso = async (req, res, next) => {
       presu,
       salida,
       client_id,
-      //user_id
     } = req.body;
 
-    const salidaValida = salida && salida.trim() !== ""
-         ? new Date(salida).toISOString().split("T")[0]
-         : null; 
-    console.log("datos recibidos en update:", req.body)
+    // ✅ Normalizar campos numéricos vacíos o nulos
+    const costoVal = costo === "" || costo === null ? null : Number(costo);
+    const manoObraVal = manoobra === "" || manoobra === null ? null : Number(manoobra);
+    const totalVal = total === "" || total === null ? null : Number(total);
+    const ivaVal = iva === "" || iva === null ? null : Number(iva);
 
-    // Ejecutar update
+    // ✅ Normalizar fecha de salida
+    const salidaValida = salida && salida.trim() !== ""
+      ? new Date(salida).toISOString().split("T")[0]
+      : null;
+
+    console.log("📦 Valores procesados:", {
+      costoVal,
+      manoObraVal,
+      totalVal,
+      ivaVal,
+      salidaValida,
+    });
+
+    // Ejecutar UPDATE
     const result = await pool.query(
       `UPDATE ingreso SET
         equipo = $1,
@@ -502,17 +570,29 @@ const updateIngreso = async (req, res, next) => {
         imagenurl = $7,
         repuesto = $8,
         manoobra = $9,
-         total = $10,
+        total = $10,
         iva = $11,
         presu = $12,
         salida = $13,
-        client_id = $14      
+        client_id = $14
        WHERE iid = $15
        RETURNING *`,
       [
-         equipo, falla, observa, fecha, nserie, costo,
-        imagenurl, repuesto, manoobra, total, iva, presu, salida || null, client_id, 
-        id // ← Usamos el de params
+        equipo,
+        falla,
+        observa,
+        fecha,
+        nserie,
+        costoVal,
+        imagenurl,
+        repuesto,
+        manoObraVal,
+        totalVal,
+        ivaVal,
+        presu,
+        salidaValida,
+        client_id,
+        iid,
       ]
     );
 
@@ -525,10 +605,11 @@ const updateIngreso = async (req, res, next) => {
 
     return res.json(result.rows[0]);
   } catch (error) {
-    console.error("Error en UPDATE:", error);
+    console.error("❌ Error en UPDATE:", error);
     next(error);
   }
 };
+
 
 /////   todas las ordenes   ///
 
