@@ -432,28 +432,35 @@ const createIngreso = async (req, res, next) => {
     let nextNumber = 1;
     if (resultLast.rows.length > 0) {
       const lastNumOrden = resultLast.rows[0].numorden;
-      const lastSequence = parseInt(lastNumOrden.split("-")[2], 10);
-      nextNumber = lastSequence + 1;
+      // Protección contra formatos inesperados
+      const parts = (lastNumOrden || "").split("-");
+      const lastSeqRaw = parts.length >= 3 ? parts[2] : null;
+      const lastSequence = lastSeqRaw ? parseInt(lastSeqRaw, 10) : NaN;
+      if (Number.isNaN(lastSequence)) {
+        nextNumber = 1;
+      } else {
+        nextNumber = lastSequence + 1;
+      }
     }
 
     const newNumOrden = `ORD-${year}-${String(nextNumber).padStart(4, "0")}`;
 
-    // ✅ Normalizar todos los valores numéricos
-    const costoVal = costo === "" || costo === null ? null : Number(costo);
-    const manoObraVal = manoobra === "" || manoobra === null ? null : Number(manoobra);
-    const totalVal = total === "" || total === null ? null : Number(total);
-    const ivaVal = iva === "" || iva === null ? null : Number(iva);
-    const repuestoVal = repuesto === "" || repuesto === null ? null : Number(repuesto);
-    const clientIdVal = client_id === "" || client_id === null ? null : Number(client_id);
+    // Normalizar todos los valores numéricos (evitar NaN / "" en la DB)
+    const costoVal = costo === "" || costo === null || costo === undefined ? null : Number(costo);
+    const manoObraVal = manoobra === "" || manoobra === null || manoobra === undefined ? null : Number(manoobra);
+    const totalVal = total === "" || total === null || total === undefined ? null : Number(total);
+    const ivaVal = iva === "" || iva === null || iva === undefined ? null : Number(iva);
+    const repuestoVal = repuesto === "" || repuesto === null || repuesto === undefined ? null : Number(repuesto);
+    const clientIdVal = client_id === "" || client_id === null || client_id === undefined ? null : Number(client_id);
 
-    // ✅ Normalizar fecha de salida
+    // Normalizar fecha de salida
     const salidaValida = salida && salida.trim() !== ""
       ? new Date(salida).toISOString().split("T")[0]
       : null;
 
     console.log("🟢 BODY recibido (create):", req.body);
     console.log("🟣 Valores procesados:", {
-      costoVal, manoObraVal, totalVal, ivaVal, repuestoVal, clientIdVal, salidaValida
+      newNumOrden, costoVal, manoObraVal, totalVal, ivaVal, repuestoVal, clientIdVal, salidaValida
     });
 
     const result = await pool.query(
@@ -486,13 +493,15 @@ const createIngreso = async (req, res, next) => {
       ]
     );
 
-    console.log("✅ Orden creada:", result.rows[0].numorden);
-    res.status(201).json(result.rows[0]);
+    console.log("✅ Orden creada:", result.rows[0].numorden, "iid:", result.rows[0].iid);
+    // Devuelve el numorden (útil para frontend)
+    res.status(201).json({ numorden: result.rows[0].numorden, ingreso: result.rows[0] });
   } catch (error) {
     console.error("❌ Error en CREATE:", error);
     next(error);
   }
 };
+
 
 
 /////         Eliminar ingreso              //////
