@@ -160,24 +160,64 @@ const getClient = async (req, res, next) => {
 //     crear cliente   ///
 
 const createClient = async (req, res, next) => {
-    const {nombre, apellido, calle, numero, piso, dto, provincia, localidad, codpost, telefono, mail} = req.body;
-    const user_id = req.user.id;
-    
+  const {
+    nombre,
+    apellido,
+    calle,
+    numero,
+    piso,
+    dto,
+    provincia,
+    localidad,
+    codpost,
+    telefono,
+    mail,
+  } = req.body;
 
-   try {
+  const user_id = req.user.id;
+
+  try {
+    // 🔧 Limpiar datos vacíos
+    for (let key in req.body) {
+      if (req.body[key] === "") {
+        req.body[key] = null;
+      }
+    }
+
+    // 🧮 Asegurar tipos numéricos válidos
+    const numeroParsed = numero ? Number(numero) : null;
+    const codpostParsed = codpost ? Number(codpost) : null;
 
     const result = await pool.query(
-        "INSERT INTO client ( nombre, apellido, calle, numero, piso, dto, provincia, localidad, codpost, telefono, mail, user_id ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12) RETURNING *",
-         [ nombre, apellido, calle, numero, piso, dto, provincia, localidad, codpost, telefono, mail, user_id]
-        );
-    
-        res.json({ id: result.rows[0].id })
-        
-    
-   } catch (error) {
-    next(error)
-   }
+      `INSERT INTO client (
+        nombre, apellido, calle, numero, piso, dto,
+        provincia, localidad, codpost, telefono, mail, user_id
+      )
+      VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12)
+      RETURNING *`,
+      [
+        nombre,
+        apellido,
+        calle,
+        numeroParsed,
+        piso,
+        dto,
+        provincia,
+        localidad,
+        codpostParsed,
+        telefono,
+        mail,
+        user_id,
+      ]
+    );
+
+    res.json({ id: result.rows[0].id });
+  } catch (error) {
+    console.error("❌ Error en createClient:", error);
+    next(error);
+  }
 };
+
 
 
 /// delete   client   ////
@@ -396,14 +436,15 @@ const createIngreso = async (req, res, next) => {
       nextNumber = lastSequence + 1;
     }
 
-    // Generar nuevo número de orden
     const newNumOrden = `ORD-${year}-${String(nextNumber).padStart(4, "0")}`;
 
-    // ✅ Normalizar valores numéricos vacíos
+    // ✅ Normalizar todos los valores numéricos
     const costoVal = costo === "" || costo === null ? null : Number(costo);
     const manoObraVal = manoobra === "" || manoobra === null ? null : Number(manoobra);
     const totalVal = total === "" || total === null ? null : Number(total);
     const ivaVal = iva === "" || iva === null ? null : Number(iva);
+    const repuestoVal = repuesto === "" || repuesto === null ? null : Number(repuesto);
+    const clientIdVal = client_id === "" || client_id === null ? null : Number(client_id);
 
     // ✅ Normalizar fecha de salida
     const salidaValida = salida && salida.trim() !== ""
@@ -412,11 +453,9 @@ const createIngreso = async (req, res, next) => {
 
     console.log("🟢 BODY recibido (create):", req.body);
     console.log("🟣 Valores procesados:", {
-      costoVal, manoObraVal, totalVal, ivaVal, salidaValida
+      costoVal, manoObraVal, totalVal, ivaVal, repuestoVal, clientIdVal, salidaValida
     });
-    console.log("📦 Imagen URL:", imagenurl);
 
-    // Insertar el ingreso
     const result = await pool.query(
       `INSERT INTO ingreso (
         client_id, numorden, equipo, falla, observa, fecha, nserie,
@@ -428,7 +467,7 @@ const createIngreso = async (req, res, next) => {
       )
       RETURNING *`,
       [
-        client_id,
+        clientIdVal,
         newNumOrden,
         equipo,
         falla,
@@ -437,7 +476,7 @@ const createIngreso = async (req, res, next) => {
         nserie,
         costoVal,
         imagenurl,
-        repuesto,
+        repuestoVal,
         manoObraVal,
         totalVal,
         ivaVal,
@@ -454,6 +493,7 @@ const createIngreso = async (req, res, next) => {
     next(error);
   }
 };
+
 
 /////         Eliminar ingreso              //////
 
