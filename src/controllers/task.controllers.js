@@ -449,7 +449,10 @@ const createIngreso = async (req, res, next) => {
     const costoVal = costo === "" || costo === null || costo === undefined ? null : Number(costo);
     const manoObraVal = manoobra === "" || manoobra === null || manoobra === undefined ? null : Number(manoobra);
     const totalVal = total === "" || total === null || total === undefined ? null : Number(total);
-    const ivaVal = iva === "" || iva === null || iva === undefined ? null : Number(iva);
+    const ivaVal =
+  iva === "" || iva === null || iva === undefined || isNaN(Number(iva))
+    ? null
+    : Number(iva);
     const repuestoVal = repuesto === "" || repuesto === null || repuesto === undefined ? null : Number(repuesto);
     const clientIdVal = client_id === "" || client_id === null || client_id === undefined ? null : Number(client_id);
 
