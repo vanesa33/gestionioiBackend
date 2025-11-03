@@ -592,7 +592,7 @@ const updateIngreso = async (req, res, next) => {
     const costoVal = costo === "" || costo === null ? null : Number(costo);
     const manoObraVal = manoobra === "" || manoobra === null ? null : Number(manoobra);
     const totalVal = total === "" || total === null ? null : Number(total);
-    const ivaVal = iva === "" || iva === null ? null : Number(iva);
+   const ivaVal = isNaN(Number(iva)) || iva === "" ? iva || null : Number(iva);
 
     // ✅ Normalizar fecha de salida
     const salidaValida = salida && salida.trim() !== ""
