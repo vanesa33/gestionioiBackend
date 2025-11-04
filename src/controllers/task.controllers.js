@@ -249,9 +249,10 @@ const upDateTask = async (req, res, next) => {
         const { id } = req.params;
     const { nombre, apellido, calle, numero, piso, dto, provincia, localidad, codpost, telefono, mail, } = req.body;
 
-   const result = await pool.query('UPDATE client SET nombre = $1, apellido = $2, telefono = $3, calle = $4, numero = $5, piso = $6, dto = $7, provincia = $8, localidad = $9, codpost = $10, mail = $11  WHERE id = $12 RETURNING *',
-         [nombre, apellido, calle, numero, piso, dto, provincia, localidad, codpost, telefono, mail, id]
-        );
+  const result = await pool.query(
+  'UPDATE client SET nombre = $1, apellido = $2, telefono = $3, calle = $4, numero = $5, piso = $6, dto = $7, provincia = $8, localidad = $9, codpost = $10, mail = $11 WHERE id = $12 RETURNING *',
+  [nombre, apellido, telefono, calle, numero, piso, dto, provincia, localidad, codpost, mail, id]
+);
 
         if (result.rows.length === 0)
             return res.status(404).json({
