@@ -160,31 +160,28 @@ const getClient = async (req, res, next) => {
 //     crear cliente   ///
 
 const createClient = async (req, res, next) => {
-  const {
-    nombre,
-    apellido,
-    calle,
-    numero,
-    piso,
-    dto,
-    provincia,
-    localidad,
-    codpost,
-    telefono,
-    mail,
-  } = req.body;
-
-  const user_id = req.user.id;
-
   try {
-    // 🔧 Limpiar datos vacíos
+    const user_id = req.user.id;
+
+    // 🔧 Limpiar campos vacíos -> null
     for (let key in req.body) {
-      if (req.body[key] === "") {
-        req.body[key] = null;
-      }
+      if (req.body[key] === "") req.body[key] = null;
     }
 
-    // 🧮 Asegurar tipos numéricos válidos
+    const {
+      nombre,
+      apellido,
+      calle,
+      numero,
+      piso,
+      dto,
+      provincia,
+      localidad,
+      codpost,
+      telefono,
+      mail,
+    } = req.body;
+
     const numeroParsed = numero ? Number(numero) : null;
     const codpostParsed = codpost ? Number(codpost) : null;
 
@@ -217,7 +214,6 @@ const createClient = async (req, res, next) => {
     next(error);
   }
 };
-
 
 
 /// delete   client   ////
