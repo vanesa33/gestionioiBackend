@@ -1,19 +1,19 @@
 const { Pool } = require("pg");
-const { db } = require("./config.js");
-require("dotenv").config({ path: './.env' });
+require("dotenv").config({ path: "./.env" });
 
 let pool;
 
 if (process.env.DATABASE_URL) {
-  // 🔹 Conexión en Render o entorno remoto
+  // 🔹 Supabase / producción
   pool = new Pool({
     connectionString: process.env.DATABASE_URL,
     ssl: { rejectUnauthorized: false },
   });
-  console.log("✅ Conectado a la base de datos en Render");
-  console.log("DATABASE_URL:", process.env.DATABASE_URL);
+  console.log("✅ DB Supabase");
 } else {
-  // 🔹 Conexión local (usando tu archivo config.js)
+  // 🔹 Local
+  const { db } = require("./config.js");
+
   pool = new Pool({
     user: db.user,
     password: db.password,
@@ -21,7 +21,7 @@ if (process.env.DATABASE_URL) {
     port: db.PORT,
     database: db.database,
   });
-  console.log("✅ Conectado a la base de datos local");
+  console.log("✅ DB Local");
 }
 
 module.exports = { pool };
