@@ -551,27 +551,25 @@ const createIngreso = async (req, res, next) => {
    
    ///////       Actualizar ingreso  ///////
 
-  
-
-   
-const updateIngreso = async (req, res, next) => {
+  const updateIngreso = async (req, res, next) => {
   try {
-    console.log("🟢 URL PARAMS:", req.params);
-    console.log("🟢 BODY:", req.body);
-
     // Confirmar base conectada
     const jwt_db = await pool.query("SELECT current_database()");
     console.log("Base de datos conectada:", jwt_db.rows[0].current_database);
 
-    // ID desde params
     const { id } = req.params;
-    const iid = parseInt(id, 10);
-
-    if (isNaN(iid)) {
+    if (isNaN(id)) {
       return res.status(400).json({ message: "ID inválido" });
     }
 
-    const {
+    // Limpieza: "" → null
+    for (let key in req.body) {
+      if (req.body[key] === "") {
+        req.body[key] = null;
+      }
+    }
+
+    let {
       equipo,
       falla,
       observa,
@@ -588,26 +586,40 @@ const updateIngreso = async (req, res, next) => {
       client_id,
     } = req.body;
 
-    // ✅ Normalizar campos numéricos vacíos o nulos
-    const costoVal = costo === "" || costo === null ? null : Number(costo);
-    const manoObraVal = manoobra === "" || manoobra === null ? null : Number(manoobra);
-    const totalVal = total === "" || total === null ? null : Number(total);
-  let ivaVal = iva === "Sí" ? "Sí" : "No";
+    //  Helper: número o null
+    const toNumberOrNull = (v) =>
+      v === null || v === undefined ? null : Number(v);
 
-    // ✅ Normalizar fecha de salida
-    const salidaValida = salida && salida.trim() !== ""
-      ? new Date(salida).toISOString().split("T")[0]
-      : null;
+    costo = toNumberOrNull(costo);
+    repuesto = toNumberOrNull(repuesto);
+    manoobra = toNumberOrNull(manoobra);
+    total = toNumberOrNull(total);
 
-    console.log("📦 Valores procesados:", {
-      costoVal,
-      manoObraVal,
-      totalVal,
-      ivaVal,
-      salidaValida,
+    //  Regla de negocio: GARANTÍA
+    if (presu === "Sí") {
+      costo = 0;
+      repuesto = 0;
+      manoobra = 0;
+      total = 0;
+      iva = "No";
+    }
+
+    //  Normalizar salida
+    const salidaValida =
+      salida && salida.trim() !== ""
+        ? new Date(salida).toISOString().split("T")[0]
+        : null;
+
+    console.log("Datos procesados en update:", {
+      costo,
+      repuesto,
+      manoobra,
+      total,
+      iva,
+      presu,
     });
 
-    // Ejecutar UPDATE
+    //  UPDATE
     const result = await pool.query(
       `UPDATE ingreso SET
         equipo = $1,
@@ -630,23 +642,20 @@ const updateIngreso = async (req, res, next) => {
         equipo,
         falla,
         observa,
-        fecha,
+        fecha || null,
         nserie,
-        costoVal,
-        imagenurl,
+        costo,
+        imagenurl || null,
         repuesto,
-        manoObraVal,
-        totalVal,
-        ivaVal,
-        presu,
+        manoobra,
+        total,
+        iva || null,
+        presu || null,
         salidaValida,
         client_id,
-        iid,
+        id,
       ]
     );
-
-    console.log("Filas afectadas:", result.rowCount);
-    console.log("Datos nuevos:", result.rows);
 
     if (result.rowCount === 0) {
       return res.status(404).json({ message: "Orden no encontrada" });
@@ -654,7 +663,7 @@ const updateIngreso = async (req, res, next) => {
 
     return res.json(result.rows[0]);
   } catch (error) {
-    console.error("❌ Error en UPDATE:", error);
+    console.error("Error en UPDATE:", error);
     next(error);
   }
 };
