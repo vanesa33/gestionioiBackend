@@ -399,110 +399,101 @@ const getAllIngreso = async (req, res, next) => {
 
 
 const createIngreso = async (req, res, next) => {
-  try {
-    const {
-      client_id,
-      equipo,
-      falla,
-      observa,
-      fecha,
-      nserie,
-      costo,
-      imagenurl,
-      repuesto,
-      manoobra,
-      total,
-      iva,
-      presu,
-      salida
-    } = req.body;
+  let {
+    client_id,
+    equipo,
+    falla,
+    observa,
+    fecha,
+    nserie,
+    costo,
+    imagenurl,
+    repuesto,
+    manoobra,
+    total,
+    iva,
+    presu,
+    salida
+  } = req.body;
 
-    const userId = req.user?.id || null;
+  const userId = req.user?.id || null;
+
+  try {
     const year = new Date().getFullYear();
 
-    // Buscar último número de orden del año
+    // Normalizar números (null permitido)
+    const toNumberOrNull = (v) =>
+      v === "" || v === undefined || v === null ? null : Number(v);
+
+    costo = toNumberOrNull(costo);
+    repuesto = toNumberOrNull(repuesto);
+    manoobra = toNumberOrNull(manoobra);
+    total = toNumberOrNull(total);
+
+    //  REGLA DE NEGOCIO: GARANTÍA
+    if (presu === "Sí") {
+      costo = 0;
+      repuesto = 0;
+      manoobra = 0;
+      total = 0;
+      iva = "No";
+    }
+
+    //  Buscar último número de orden del año
     const resultLast = await pool.query(
-      'SELECT numorden FROM ingreso WHERE numorden LIKE $1 ORDER BY numorden DESC LIMIT 1',
+      `SELECT numorden 
+       FROM ingreso 
+       WHERE numorden LIKE $1 
+       ORDER BY numorden DESC 
+       LIMIT 1`,
       [`ORD-${year}-%`]
     );
 
     let nextNumber = 1;
     if (resultLast.rows.length > 0) {
       const lastNumOrden = resultLast.rows[0].numorden;
-      // Protección contra formatos inesperados
-      const parts = (lastNumOrden || "").split("-");
-      const lastSeqRaw = parts.length >= 3 ? parts[2] : null;
-      const lastSequence = lastSeqRaw ? parseInt(lastSeqRaw, 10) : NaN;
-      if (Number.isNaN(lastSequence)) {
-        nextNumber = 1;
-      } else {
-        nextNumber = lastSequence + 1;
-      }
+      const lastSequence = parseInt(lastNumOrden.split("-")[2], 10);
+      nextNumber = lastSequence + 1;
     }
 
     const newNumOrden = `ORD-${year}-${String(nextNumber).padStart(4, "0")}`;
 
-    // Normalizar todos los valores numéricos (evitar NaN / "" en la DB)
-    const costoVal = costo === "" || costo === null || costo === undefined ? null : Number(costo);
-    const manoObraVal = manoobra === "" || manoobra === null || manoobra === undefined ? null : Number(manoobra);
-    const totalVal = total === "" || total === null || total === undefined ? null : Number(total);
-    const ivaVal =
-  iva === "" || iva === null || iva === undefined || isNaN(Number(iva))
-    ? null
-    : Number(iva);
-    const repuestoVal = repuesto === "" || repuesto === null || repuesto === undefined ? null : Number(repuesto);
-    const clientIdVal = client_id === "" || client_id === null || client_id === undefined ? null : Number(client_id);
-
-    // Normalizar fecha de salida
-    const salidaValida = salida && salida.trim() !== ""
-      ? new Date(salida).toISOString().split("T")[0]
-      : null;
-
-    console.log("🟢 BODY recibido (create):", req.body);
-    console.log("🟣 Valores procesados:", {
-      newNumOrden, costoVal, manoObraVal, totalVal, ivaVal, repuestoVal, clientIdVal, salidaValida
-    });
-
+    //  INSERT
     const result = await pool.query(
       `INSERT INTO ingreso (
         client_id, numorden, equipo, falla, observa, fecha, nserie,
         costo, imagenurl, repuesto, manoobra, total, iva, presu, salida, user_id
       )
       VALUES (
-        $1, $2, $3, $4, $5, $6, $7,
-        $8, $9, $10, $11, $12, $13, $14, $15, $16
+        $1,$2,$3,$4,$5,$6,$7,
+        $8,$9,$10,$11,$12,$13,$14,$15,$16
       )
       RETURNING *`,
       [
-        clientIdVal,
+        client_id,
         newNumOrden,
         equipo,
         falla,
         observa,
-        fecha,
+        fecha || null,
         nserie,
-        costoVal,
-        imagenurl,
-        repuestoVal,
-        manoObraVal,
-        totalVal,
-        ivaVal,
-        presu,
-        salidaValida,
+        costo,
+        imagenurl || null,
+        repuesto,
+        manoobra,
+        total,
+        iva || null,
+        presu || null,
+        salida || null,
         userId
       ]
     );
 
-    console.log("✅ Orden creada:", result.rows[0].numorden, "iid:", result.rows[0].iid);
-    // Devuelve el numorden (útil para frontend)
-    res.status(201).json({ numorden: result.rows[0].numorden, ingreso: result.rows[0] });
+    res.status(201).json(result.rows[0]);
   } catch (error) {
-    console.error("❌ Error en CREATE:", error);
     next(error);
   }
 };
-
-
 
 /////         Eliminar ingreso              //////
 
