@@ -1,7 +1,8 @@
 const {pool} = require ('../db.js');
 const {taskRequired} = require ('../middlewares/jkt.middleware.js');
-const { result } = require ('../models/task.model.js')
-const { supabase } = require('../supabaseClient.js')
+const { result } = require ('../models/task.model.js');
+const { supabase } = require('../supabaseClient.js');
+const { getNumeroVisual } = require('../orden.utils.js');
 
          ////////                    roles              ///////////
 
