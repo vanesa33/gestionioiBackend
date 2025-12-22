@@ -399,29 +399,40 @@ const getAllIngreso = async (req, res, next) => {
 
 
 const createIngreso = async (req, res, next) => {
-  let {
-    client_id,
-    equipo,
-    falla,
-    observa,
-    fecha,
-    nserie,
-    costo,
-    imagenurl,
-    repuesto,
-    manoobra,
-    total,
-    iva,
-    presu,
-    salida
-  } = req.body;
-
-  const userId = req.user?.id || null;
-
   try {
+    let {
+      client_id,
+      equipo,
+      falla,
+      observa,
+      fecha,
+      nserie,
+      costo,
+      imagenurl,
+      repuesto,
+      manoobra,
+      total,
+      iva,
+      presu,
+      salida,
+      tipo_orden
+    } = req.body;
+
+    const userId = req.user?.id || null;
+
+    // 🔹 Normalizar tipo_orden a minúscula y eliminar espacios
+    if (tipo_orden) {
+      tipo_orden = tipo_orden.toLowerCase().trim();
+    }
+
+    // 🔹 Validar tipo_orden, default a "service" si es inválido o vacío
+    if (!tipo_orden || !["reparacion", "service"].includes(tipo_orden)) {
+      tipo_orden = "service";
+    }
+
     const year = new Date().getFullYear();
 
-    // Normalizar números (null permitido)
+    // 🔹 Función helper para convertir a número o null
     const toNumberOrNull = (v) =>
       v === "" || v === undefined || v === null ? null : Number(v);
 
@@ -430,7 +441,7 @@ const createIngreso = async (req, res, next) => {
     manoobra = toNumberOrNull(manoobra);
     total = toNumberOrNull(total);
 
-    //  REGLA DE NEGOCIO: GARANTÍA
+    // 🔹 Regla de negocio: garantía
     if (presu === "Sí") {
       costo = 0;
       repuesto = 0;
@@ -439,7 +450,7 @@ const createIngreso = async (req, res, next) => {
       iva = "No";
     }
 
-    //  Buscar último número de orden del año
+    // 🔹 Buscar último número de orden del año
     const resultLast = await pool.query(
       `SELECT numorden 
        FROM ingreso 
@@ -458,20 +469,26 @@ const createIngreso = async (req, res, next) => {
 
     const newNumOrden = `ORD-${year}-${String(nextNumber).padStart(4, "0")}`;
 
-    //  INSERT
+    // 🔹 Ajustes específicos si es service
+    if (tipo_orden === "service") {
+      falla = null;
+      repuesto = 0;
+    }
+
+    // 🔹 Insertar en DB
     const result = await pool.query(
       `INSERT INTO ingreso (
-        client_id, numorden, equipo, falla, observa, fecha, nserie,
+        client_id, numorden, tipo_orden, equipo, falla, observa, fecha, nserie,
         costo, imagenurl, repuesto, manoobra, total, iva, presu, salida, user_id
       )
       VALUES (
-        $1,$2,$3,$4,$5,$6,$7,
-        $8,$9,$10,$11,$12,$13,$14,$15,$16
+        $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17
       )
       RETURNING *`,
       [
         client_id,
         newNumOrden,
+        tipo_orden,
         equipo,
         falla,
         observa,
@@ -489,7 +506,12 @@ const createIngreso = async (req, res, next) => {
       ]
     );
 
-    res.status(201).json(result.rows[0]);
+    const ingreso = result.rows[0];
+
+    // 🔹 Para mostrar en frontend con formato visual
+    ingreso.numorden_visual = getNumeroVisual(ingreso.numorden, ingreso.tipo_orden);
+
+    res.status(201).json(ingreso);
   } catch (error) {
     next(error);
   }
