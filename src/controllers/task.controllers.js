@@ -564,7 +564,7 @@ const createIngreso = async (req, res, next) => {
    
    ///////       Actualizar ingreso  ///////
 
-  const updateIngreso = async (req, res, next) => {
+ const updateIngreso = async (req, res, next) => {
   try {
     // Confirmar base conectada
     const jwt_db = await pool.query("SELECT current_database()");
@@ -632,6 +632,34 @@ const createIngreso = async (req, res, next) => {
       presu,
     });
 
+    const ingresoActual = await pool.query(
+      "SELECT tipo_orden FROM ingreso WHERE iid = $1",
+      [id]
+    );
+
+    if (ingresoActual.rowCount === 0) {
+      return res.status(404).json({ message: "Orden no encontrada" });
+    }
+    const { tipo_orden, numorden } = ingresoActual.rows[0];
+
+    //  Regla de negocio: Si es "service", ajustar campos   
+    if (tipo_orden === "service") {
+      falla = null;
+      repuesto = 0;
+    }
+
+    const estadoIngreso = await pool.query(
+      "SELECT * FROM ingreso WHERE iid = $1",
+      [id]
+    );
+    if (estadoIngreso.rowCount === 0) {
+      return res.status(404).json({ message: "Orden no encontrada" });
+    }
+    if (estadoIngreso.rows[0].salida) {
+      return res
+        .status(400)
+        .json({ message: "No se puede editar una orden cerrada." });
+    } 
     //  UPDATE
     const result = await pool.query(
       `UPDATE ingreso SET
@@ -670,6 +698,15 @@ const createIngreso = async (req, res, next) => {
       ]
     );
 
+    const ingreso = result.rows[0];
+
+    ingresoActualizado.numorden_visual = getNumeroVisual(
+      numorden,
+      tipo_orden
+    );
+
+    return res.jeson(ingresoActualizado);
+
     if (result.rowCount === 0) {
       return res.status(404).json({ message: "Orden no encontrada" });
     }
@@ -680,8 +717,6 @@ const createIngreso = async (req, res, next) => {
     next(error);
   }
 };
-
-
 /////   todas las ordenes   ///
 
 
