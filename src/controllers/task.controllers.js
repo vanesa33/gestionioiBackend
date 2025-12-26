@@ -390,6 +390,8 @@ const getIngreso = async (req, res, next) => {
     }
 
     res.json(result.rows[0]);
+           console.log("INGRESO:", result.rows[0]);
+
   } catch (error) {
     next(error);
   }
