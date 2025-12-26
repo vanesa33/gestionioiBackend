@@ -373,26 +373,26 @@ const getIngreso = async (req, res, next) => {
 
     const result = await pool.query(
       `
-      SELECT
-        i.*,
-        c.nombre   AS nombre,
-        c.apellido AS apellido,
-        c.telefono AS telefono
-      FROM ingreso i
-      JOIN client c ON i.client_id = c.id
-      WHERE i.iid = $1
+      SELECT 
+        ingreso.*,
+        client.nombre,
+        client.apellido,
+        client.telefono,
+        client.direccion
+      FROM ingreso
+      JOIN client ON ingreso.client_id = client.client_id
+      WHERE ingreso.iid = $1
       `,
       [id]
     );
 
     if (result.rows.length === 0) {
-      return res.status(404).json({ message: "Task not found" });
+      return res.status(404).json({ message: "Orden no encontrada" });
     }
 
     res.json(result.rows[0]);
-           console.log("INGRESO:", result.rows[0]);
-
   } catch (error) {
+    console.error(error);
     next(error);
   }
 };
