@@ -367,34 +367,34 @@ const getAllIngreso = async (req, res, next) => {
     ///           obtener ingreso    /////
 
 
-    const getIngreso = async (req, res, next) => {
-        try {
-         
-         const {id} = req.params
-     
-         const result = await pool.query(
-            `SELECT ingreso.*, client.*
-             FROM ingreso 
-             JOIN client ON ingreso.client_id = client_id
-             WHERE ingreso.iid = $1`,
-             [id]
-            );
-      
-         if (result.rows.length === 0)
-           return res.status(404).json({
-             message: 'Task not found',
-             
-         });
-      
-           res.json(result.rows[0]);
-     
-        } catch (error) {
-     
-         next(error)
-         
-        }
-        
-     };
+  const getIngreso = async (req, res, next) => {
+  try {
+    const { id } = req.params;
+
+    const result = await pool.query(
+      `
+      SELECT 
+        ingreso.*,
+        client.nombre   AS cliente_nombre,
+        client.apellido AS cliente_apellido,
+        client.telefono AS cliente_telefono
+      FROM ingreso
+      JOIN client ON ingreso.client_id = client.id
+      WHERE ingreso.iid = $1
+      `,
+      [id]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ message: "Task not found" });
+    }
+
+    res.json(result.rows[0]);
+  } catch (error) {
+    next(error);
+  }
+};
+
      
 /////          crear ingreso    /////////
 
