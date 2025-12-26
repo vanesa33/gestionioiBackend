@@ -373,14 +373,14 @@ const getAllIngreso = async (req, res, next) => {
 
     const result = await pool.query(
       `
-      SELECT 
-        ingreso.*,
-        client.nombre   AS cliente_nombre,
-        client.apellido AS cliente_apellido,
-        client.telefono AS cliente_telefono
-      FROM ingreso
-      JOIN client ON ingreso.client_id = client.id
-      WHERE ingreso.iid = $1
+      SELECT
+        i.*,
+        c.nombre   AS nombre,
+        c.apellido AS apellido,
+        c.telefono AS telefono
+      FROM ingreso i
+      JOIN client c ON i.client_id = c.client_id
+      WHERE i.iid = $1
       `,
       [id]
     );
@@ -389,7 +389,7 @@ const getAllIngreso = async (req, res, next) => {
       return res.status(404).json({ message: "Task not found" });
     }
 
-    res.json(result.rows[0]);
+    return res.json(result.rows[0]);
   } catch (error) {
     next(error);
   }
