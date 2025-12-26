@@ -367,7 +367,7 @@ const getAllIngreso = async (req, res, next) => {
     ///           obtener ingreso    /////
 
 
-  const getIngreso = async (req, res, next) => {
+const getIngreso = async (req, res, next) => {
   try {
     const { id } = req.params;
 
@@ -379,7 +379,7 @@ const getAllIngreso = async (req, res, next) => {
         c.apellido AS apellido,
         c.telefono AS telefono
       FROM ingreso i
-      JOIN client c ON i.client_id = c.client_id
+      JOIN client c ON i.client_id = c.id
       WHERE i.iid = $1
       `,
       [id]
@@ -389,13 +389,11 @@ const getAllIngreso = async (req, res, next) => {
       return res.status(404).json({ message: "Task not found" });
     }
 
-    return res.json(result.rows[0]);
+    res.json(result.rows[0]);
   } catch (error) {
     next(error);
   }
 };
-
-     
 /////          crear ingreso    /////////
 
 
