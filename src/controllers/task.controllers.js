@@ -380,7 +380,7 @@ const getIngreso = async (req, res, next) => {
         client.telefono,
         client.direccion
       FROM ingreso
-      JOIN client ON ingreso.client_id = client.client_id
+      JOIN client ON ingreso.client_id = client.id
       WHERE ingreso.iid = $1
       `,
       [id]
