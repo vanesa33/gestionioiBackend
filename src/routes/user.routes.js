@@ -20,11 +20,32 @@ router.post('/login', validateSchema(loginSchema), login);
 router.get('/profile', verifyTokenUser, verifyTecnico, profile);
 
 router.get('/users', verifyToken, getAllUsers)
-router.get('/usuarios', verifyToken, getAllUsers)
 router.get('/user/:id', verifyToken,  getUsers)
-router.post('/logout', logout);
-router.post('/verify', verifyToken)
 
+
+router.post('/logout', logout);
+router.post('/verify', verifyToken, (req, res) => {
+  res.json({ok: true, user: req.user});
+});
+
+router.get("/", verifyToken, verifyAdmin, getAllUsers);
+
+router.get("/passuser", verifyTokenUser, verifyAdmin, getAllUsers);
+router.get("/passuser/:id", verifyTokenUser, verifyAdmin, getUsers);
+
+router.put("/passuser/:id/reset-password", (req, res, next) => {
+    console.log("entro a la ruta reset-password");
+    next();
+},
+    verifyTokenUser, verifyAdmin, resetPassword);
+
+router.put("/cambiar-password", verifyTokenUser, resetPasswordUser);
+
+//router.put("/cambiar-password/:id", verifyToken, verifyAdmin, resetPasswordUser);
+router.put("/passuser/:id/cambiar-password", verifyToken, resetPasswordUser);
+
+
+router.get('/usuarios', verifyToken, getAllUsers)
 // api/admin    
 
 router.get('/api/roles', verifyToken, verifyAdmin, getAllRoles);
