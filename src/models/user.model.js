@@ -1,8 +1,14 @@
 const {db} = require ('../config.js');
 const {pool} = require ( '../db.js');
 
+const getAll = async () => {
+  const { rows } = await pool.query(
+    'SELECT ruid AS id, username, email, role_id FROM users ORDER BY ruid'
+  );
+  return rows;
+};
 
-const getAllUsers = async (req, res, next) => {    
+/*const getAllUsers = async (req, res, next) => {    
 
     try
     {
@@ -11,7 +17,7 @@ const getAllUsers = async (req, res, next) => {
     } catch (error){
        next(error)
     }
-    };
+    };*/
 
     const getUsers = async (req, res, next) => {
         try {
@@ -113,6 +119,13 @@ const getAllUsers = async (req, res, next) => {
        }
     };
 
+   /* const findAll = async () => {
+  const { rows } = await pool.query(
+    "SELECT id, username, email, role_id FROM users ORDER BY id"
+  );
+  return rows;
+}*/
+
     const findAll = async (req, res) => {
         try {
             const users = await UserModel.findAll()
@@ -127,14 +140,23 @@ const getAllUsers = async (req, res, next) => {
         }
     }
 
+    const findByEmail = async (email) => {
+  const { rows } = await pool.query(
+    'SELECT * FROM users WHERE email = $1',
+    [email]
+  );
+  return rows[0];
+};
+
     module.exports = {
 
       UserModel: { 
-        getAllUsers,
+        getAll,
         getUsers,
         createUser,
         deleteUser,
         updateUser,
-        findOneEmail
+        findOneEmail,
+        findByEmail,        findAll
       }
     };
