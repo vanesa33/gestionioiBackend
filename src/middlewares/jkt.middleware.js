@@ -2,7 +2,9 @@ const jwt = require('jsonwebtoken');
 
 const verifyTokenUser = (req, res, next) => {
   console.log('Entrando a verifyTokenUser');
-
+  const userId = req.params.id;
+  console.log('User ID from params:', userId);
+  
   // Intentamos obtener el token desde la cookie primero
   let token = req.cookies?.token;
 
@@ -39,8 +41,16 @@ const verifyTokenUser = (req, res, next) => {
 
 const verifyAdmin = (req, res, next) => {
 
-if (req.role_id === 1) {
+/*if (req.role_id === 1) {
   return next()
+}*/
+
+if (!req.user) {
+  return res.status(401).json({ error: "no autenticado" });
+}
+
+if (req.user.role_id === 1) {
+  return next();  
 }
 
 return res.status(403).json({ error: "Unauthorized only admin user"})
@@ -67,30 +77,3 @@ const verifyTecnico = (req, res, next) => {
       verifyFactura,
       verifyTecnico
   }
-
-/*const  jwt  = require  ('jsonwebtoken');
-
-const verifyToken =(req, res, next) =>{
-  const {token} = req.cookies;
-  try {    
-  
- if (!token)
-  return res.status(401).json({ message: "No token, authorization denied"}); 
-
-     jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
-      if(err) return res.status(403).json({message: "Invalis token"});
-
-      req.user = user
-      next();
-})
-  }
-  catch (error) {
-    
-  }
-};
-
-
-module.exports = {
-  verifyToken
-};
-*/
