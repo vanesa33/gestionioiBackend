@@ -19,7 +19,7 @@ router.post('/register', validateSchema(registerSchema), register);
 router.post('/login', validateSchema(loginSchema), login);
 router.get('/profile', verifyTokenUser, verifyTecnico, profile);
 
-router.get('/users', verifyToken, getAllUsers)
+//router.get('/users', verifyToken, getAllUsers)
 router.get('/user/:id', verifyToken,  getUsers)
 
 
@@ -28,7 +28,7 @@ router.post('/verify', verifyToken, (req, res) => {
   res.json({ok: true, user: req.user});
 });
 
-router.get("/", verifyToken, verifyAdmin, getAllUsers);
+//router.get("/", verifyToken, verifyAdmin, getAllUsers);
 
 router.get("/passuser", verifyTokenUser, verifyAdmin, getAllUsers);
 router.get("/passuser/:id", verifyTokenUser, verifyAdmin, getUsers);
