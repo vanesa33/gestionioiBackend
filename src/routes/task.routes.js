@@ -34,35 +34,35 @@ router.get('/', verifyTokenUser)
 
 // ***  client  *** //
 
-router.get('/api/tasks', verifyTokenUser, getAllClient);
+router.get('/tasks', verifyTokenUser, getAllClient);
 
-router.get('/api/tasks/:id', verifyTokenUser, getClient);
+router.get('/tasks/:id', verifyTokenUser, getClient);
 
-router.post('/api/tasks', verifyTokenUser, createClient);
+router.post('/tasks', verifyTokenUser, createClient);
 
-router.delete('/api/tasks/:id', verifyTokenUser, deleteTask);
+router.delete('/tasks/:id', verifyTokenUser, deleteTask);
 
-router.put('/api/tasks/:id', verifyTokenUser, upDateTask);
+router.put('/tasks/:id', verifyTokenUser, upDateTask);
 
 //ingreso por usuario//
 
-router.get("/api/ingresos/user", verifyTokenUser, getAllIngresoByUser);
+router.get("/ingresos/user", verifyTokenUser, getAllIngresoByUser);
 
 // *** Ingreso ** //
 
-router.get("/api/ingresos/poruser/:id", verifyTokenUser, getAllIngresosSinFiltro );
+router.get("/ingresos/poruser/:id", verifyTokenUser, getAllIngresosSinFiltro );
 
-router.get("/api/ingresos/todos", verifyTokenUser, getAllIngresosSinFiltro);
+router.get("/ingresos/todos", verifyTokenUser, getAllIngresosSinFiltro);
 
-router.get('/api/ingresos', verifyTokenUser, getAllIngreso);
+router.get('/ingresos', verifyTokenUser, getAllIngreso);
 
-router.get('/api/ingresos/:id', verifyTokenUser, getIngreso);
+router.get('/ingresos/:id', verifyTokenUser, getIngreso);
 
-router.post('/api/ingresos', verifyTokenUser, createIngreso);
+router.post('/ingresos', verifyTokenUser, createIngreso);
 
-router.delete('/api/ingresos/:id', verifyTokenUser, deleteIngreso);
+router.delete('/ingresos/:id', verifyTokenUser, deleteIngreso);
 
-router.put('/api/ingresos/:id', verifyTokenUser,  updateIngreso);
+router.put('/ingresos/:id', verifyTokenUser,  updateIngreso);
 
 // *** orden *** //
 
