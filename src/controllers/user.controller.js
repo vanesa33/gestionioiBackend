@@ -294,7 +294,14 @@ const verifyToken = (req, res) => {
         email: decoded.email,
         role_id: decoded.role_id,
       },
+        
     });
+
+      console.log("TOKEN HEADER:", req.headers.authorization);
+      console.log("TOKEN COOKIE:", req.cookies?.token);
+      console.log("JWT_SECRET:", process.env.JWT_SECRET);
+
+
 
   } catch (error) {
     return res.status(401).json({ message: "Unauthorized" });
