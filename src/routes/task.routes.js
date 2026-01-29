@@ -52,7 +52,7 @@ router.get("/ingresos/user", verifyTokenUser, getAllIngresoByUser);
 
 router.get("/ingresos/poruser/:id", verifyTokenUser, getAllIngresosSinFiltro );
 
-router.get("/ingresos/todos", verifyTokenUser, getAllIngresosSinFiltro);
+router.get("/api/ingresos/todos", verifyTokenUser, getAllIngresosSinFiltro);
 
 router.get('/ingresos', verifyTokenUser, getAllIngreso);
 
