@@ -30,10 +30,10 @@ router.post('/verify', verifyToken, (req, res) => {
 
 router.get("/", verifyToken, verifyAdmin, getAllUsers);
 
-router.get("/passuser", verifyTokenUser, verifyAdmin, getAllUsers);
-router.get("/passuser/:id", verifyTokenUser, verifyAdmin, getUsers);
+router.get("/api/passuser", verifyTokenUser, verifyAdmin, getAllUsers);
+router.get("/api/passuser/:id", verifyTokenUser, verifyAdmin, getUsers);
 
-router.put("/passuser/:id/reset-password", (req, res, next) => {
+router.put("/api/passuser/:id/reset-password", (req, res, next) => {
     console.log("entro a la ruta reset-password");
     next();
 },
