@@ -17,9 +17,9 @@ const router = Router();
 //router.post('/register', validateSchema(registerSchema), register)
 router.post('/register', validateSchema(registerSchema), register);
 router.post('/login', validateSchema(loginSchema), login);
-router.get('/profile', verifyToken, verifyTecnico, profile);
+router.get('/profile', verifyTokenUser, verifyTecnico, profile);
 
-router.get('/users', verifyToken, verifyAdmin, getAllUsers)
+router.get('/users', verifyTokenUser, verifyAdmin, getAllUsers)
 router.get('/user/:id', verifyTokenUser,  getUsers)
 
 
@@ -30,7 +30,7 @@ router.post('/verify', verifyToken, (req, res) => {
 
 router.get("/", verifyToken, verifyAdmin, getAllUsers);
 
-router.get("/passuser", verifyToken, verifyAdmin, getAllUsers);
+router.get("/passuser", verifyTokenUser, verifyAdmin, getAllUsers);
 router.get("/passuser/:id", verifyTokenUser, verifyAdmin, getUsers);
 
 router.put("/passuser/:id/reset-password", (req, res, next) => {
@@ -39,13 +39,13 @@ router.put("/passuser/:id/reset-password", (req, res, next) => {
 },
     verifyTokenUser, verifyAdmin, resetPassword);
 
-router.put("/cambiar-password", verifyToken, resetPasswordUser);
+router.put("/cambiar-password", verifyTokenUser, resetPasswordUser);
 
 //router.put("/cambiar-password/:id", verifyTokenUser, verifyAdmin, resetPasswordUser);
 router.put("/passuser/:id/cambiar-password", verifyToken, resetPasswordUser);
 
 
-router.get('/usuarios', verifyToken, getAllUsers)
+router.get('/usuarios', verifyTokenUser, getAllUsers)
 // api/admin    
 
 router.get('/api/roles', verifyToken, verifyAdmin, getAllRoles);
