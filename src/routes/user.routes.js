@@ -19,7 +19,7 @@ router.post('/register', validateSchema(registerSchema), register);
 router.post('/login', validateSchema(loginSchema), login);
 router.get('/profile', verifyToken, verifyTecnico, profile);
 
-router.get('/users', verifyToken, getAllUsers)
+router.get('/users', verifyToken, verifyAdmin, getAllUsers)
 router.get('/user/:id', verifyTokenUser,  getUsers)
 
 
