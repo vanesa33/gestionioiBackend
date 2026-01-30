@@ -28,7 +28,7 @@ router.post('/verify', verifyToken, (req, res) => {
   res.json({ok: true, user: req.user});
 });
 
-router.get("/", verifyToken, verifyAdmin, getAllUsers);
+//router.get("/", verifyToken, verifyAdmin, getAllUsers);
 
 router.get("/passuser", verifyTokenUser, verifyAdmin, getAllUsers);
 router.get("/passuser/:id", verifyTokenUser, verifyAdmin, getUsers);
