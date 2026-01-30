@@ -45,7 +45,7 @@ router.put("/cambiar-password", verifyTokenUser, resetPasswordUser);
 router.put("/passuser/:id/cambiar-password", verifyToken, resetPasswordUser);
 
 
-router.get('/usuarios', verifyTokenUser, getAllUsers)
+//router.get('/usuarios', verifyTokenUser, getAllUsers)
 // api/admin    
 
 router.get('/api/roles', verifyToken, verifyAdmin, getAllRoles);
