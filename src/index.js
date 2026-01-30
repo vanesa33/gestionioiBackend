@@ -54,8 +54,8 @@ app.use(express.urlencoded({ extended:true}));
 //const tasksRouter = require('./routes/task.routes.js');
 //app.use("/api/ingreso", ingresoRoutes);
 
-app.use("/api", userRouter);
-app.use("/api", taskRoutes);
+app.use("/", userRouter);
+app.use("/", taskRoutes);
 
 app.use((err, req, res, next) => {
      return res.json({
