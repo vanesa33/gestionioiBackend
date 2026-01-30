@@ -3,6 +3,8 @@ const { verifyTokenUser, verifyAdmin, verifyTecnico}  = require ('../middlewares
 
 const {getAllIngresoByUser, getAllIngresosSinFiltro} = require('../controllers/task.controllers.js')
 
+const {verifyToken} = require ('../controllers/user.controllers.js');
+
 const { getAllIngreso,
         getIngreso,
         createIngreso,
@@ -34,35 +36,35 @@ router.get('/', verifyTokenUser)
 
 // ***  client  *** //
 
-router.get('/tasks', verifyTokenUser, getAllClient);
+router.get('/tasks', verifyToken, verifyTokenUser, getAllClient);
 
-router.get('/tasks/:id', verifyTokenUser, getClient);
+router.get('/tasks/:id', verifyToken, verifyTokenUser, getClient);
 
-router.post('/tasks', verifyTokenUser, createClient);
+router.post('/tasks', verifyToken, verifyTokenUser, createClient);
 
-router.delete('/tasks/:id', verifyTokenUser, deleteTask);
+router.delete('/tasks/:id', verifyToken, verifyTokenUser, deleteTask);
 
-router.put('/tasks/:id', verifyTokenUser, upDateTask);
+router.put('/tasks/:id', verifyToken, verifyTokenUser, upDateTask);
 
 //ingreso por usuario//
 
-router.get("/ingresos/user", verifyTokenUser, getAllIngresoByUser);
+router.get("/ingresos/user", verifyToken, verifyTokenUser, getAllIngresoByUser);
 
 // *** Ingreso ** //
 
-router.get("/ingresos/poruser/:id", verifyTokenUser, getAllIngresosSinFiltro );
+router.get("/ingresos/poruser/:id", verifyToken, verifyTokenUser, getAllIngresosSinFiltro );
 
-router.get("/ingresos/todos", verifyTokenUser, getAllIngresosSinFiltro);
+router.get("/ingresos/todos", verifyToken, verifyTokenUser, getAllIngresosSinFiltro);
 
-router.get('/ingresos', verifyTokenUser, getAllIngreso);
+router.get('/ingresos', verifyToken, verifyTokenUser, getAllIngreso);
 
-router.get('/ingresos/:id', verifyTokenUser, getIngreso);
+router.get('/ingresos/:id', verifyToken verifyTokenUser, getIngreso);
 
-router.post('/ingresos', verifyTokenUser, createIngreso);
+router.post('/ingresos', verifyToken, verifyTokenUser, createIngreso);
 
-router.delete('/ingresos/:id', verifyTokenUser, deleteIngreso);
+router.delete('/ingresos/:id', verifyToken, verifyTokenUser, deleteIngreso);
 
-router.put('/ingresos/:id', verifyTokenUser,  updateIngreso);
+router.put('/ingresos/:id', verifyToken, verifyTokenUser,  updateIngreso);
 
 // *** orden *** //
 
