@@ -208,10 +208,13 @@ const login = async(req, res) => {
 
         );
 
+
+       
+
         res.cookie('token', token, {
             httpOnly: true,
-            secure: false,
-            sameSite: 'Lax',
+            secure: true,
+            sameSite: 'None',
             maxAge: 3600000
         });
 
