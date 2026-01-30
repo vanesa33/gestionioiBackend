@@ -30,7 +30,7 @@ router.post('/verify', verifyToken, (req, res) => {
 
 router.get("/", verifyToken, verifyAdmin, getAllUsers);
 
-router.get("/passuser", verifyTokenUser, verifyAdmin, getAllUsers);
+router.get("/passuser", verifyToken, verifyAdmin, getAllUsers);
 router.get("/passuser/:id", verifyTokenUser, verifyAdmin, getUsers);
 
 router.put("/passuser/:id/reset-password", (req, res, next) => {
