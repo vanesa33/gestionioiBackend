@@ -58,7 +58,7 @@ router.get("/ingresos/todos", verifyToken, verifyTokenUser, getAllIngresosSinFil
 
 router.get('/ingresos', verifyToken, verifyTokenUser, getAllIngreso);
 
-router.get('/ingresos/:id', verifyToken verifyTokenUser, getIngreso);
+router.get('/ingresos/:id', verifyToken, verifyTokenUser, getIngreso);
 
 router.post('/ingresos', verifyToken, verifyTokenUser, createIngreso);
 
