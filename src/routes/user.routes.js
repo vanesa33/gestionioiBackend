@@ -17,10 +17,10 @@ const router = Router();
 //router.post('/register', validateSchema(registerSchema), register)
 router.post('/register', validateSchema(registerSchema), register);
 router.post('/login', validateSchema(loginSchema), login);
-router.get('/profile', verifyTokenUser, verifyTecnico, profile);
+router.get('/profile', verifyToken, verifyTecnico, profile);
 
 router.get('/users', verifyToken, getAllUsers)
-router.get('/user/:id', verifyToken,  getUsers)
+router.get('/user/:id', verifyTokenUser,  getUsers)
 
 
 router.post('/logout', logout);
@@ -39,9 +39,9 @@ router.put("/passuser/:id/reset-password", (req, res, next) => {
 },
     verifyTokenUser, verifyAdmin, resetPassword);
 
-router.put("/cambiar-password", verifyTokenUser, resetPasswordUser);
+router.put("/cambiar-password", verifyToken, resetPasswordUser);
 
-//router.put("/cambiar-password/:id", verifyToken, verifyAdmin, resetPasswordUser);
+//router.put("/cambiar-password/:id", verifyTokenUser, verifyAdmin, resetPasswordUser);
 router.put("/passuser/:id/cambiar-password", verifyToken, resetPasswordUser);
 
 
