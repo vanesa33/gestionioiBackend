@@ -395,6 +395,58 @@ const resetPasswordUser = async (req, res) => {
     res.status(500).json({ message: "Error al cambiar contraseña" });
   }
 };
+
+const deleteUser = async (req, res) => {
+  try {
+    const userIdToDelete = Number(req.params.id);
+    const result = await pool.query(
+      `DELETE FROM users WHERE ruid = $1 RETURNING ruid`,
+      [userIdToDelete]
+    );
+
+    if (result.rowCount === 0) {
+      return res.status(404).json({ message: "Usuario no encontrado" });
+    }
+
+    res.json({
+      ok: true,
+      message: "Usuario eliminado correctamente",
+    });
+
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Error al eliminar usuario" });
+  }
+};
+
+const updateUserRole = async (req, res) => {
+  try {
+    const userId = Number(req.params.id);
+    const { role_id } = req.body;
+
+    const result = await pool.query(
+      `UPDATE users SET role_id = $1 WHERE ruid = $2 RETURNING ruid, username, email, role_id`,
+      [role_id, userId]
+    );
+
+    if (result.rowCount === 0) {
+      return res.status(404).json({ message: "Usuario no encontrado" });
+    }
+
+    res.json({
+      ok: true,
+      message: "Rol actualizado correctamente",
+      user: result.rows[0],
+    });
+
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Error al actualizar rol del usuario" });
+  }
+};
+
+
+
 module.exports = { 
     getUsers,
     getAllUsers,
@@ -405,5 +457,8 @@ module.exports = {
     verifyToken,
     verify, 
     resetPasswordUser,
-    resetPassword
+    resetPassword,
+    deleteUser,
+    updateUserRole
+    
 };
