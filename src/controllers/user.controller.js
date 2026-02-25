@@ -44,12 +44,17 @@ const getUsers = async (req, res, next) => {
   }
 };
 */
- const getAllUsers = async (req, res) => {
+const getAllUsers = async (req, res) => {
   try {
     console.log("entro a getAllUsers controller");
     const result = await pool.query(`
-      SELECT ruid, username, email, role_id
-      FROM users
+      SELECT ruid,
+      username, 
+      email, 
+      role_id,
+      r.name AS role_name
+      FROM users u
+      JOIN roles r ON u.role_id = r.rid
       ORDER BY role_id, username
     `);
 
@@ -62,7 +67,6 @@ const getUsers = async (req, res, next) => {
     res.status(500).json({ message: "Error al obtener usuarios" });
   }
 };
-
 
 
  /*const getAllUsers = async (req, res, next) => {    
