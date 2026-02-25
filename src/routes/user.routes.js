@@ -1,5 +1,5 @@
 const { Router } = require('express');
-const { register, login, profile, logout, getAllUsers, getUsers, verifyToken, resetPassword, resetPasswordUser } = require('../controllers/user.controller.js');
+const { register, login, profile, logout, getAllUsers, getUsers, verifyToken, resetPassword, resetPasswordUser, deleteUser, updateUserRole } = require('../controllers/user.controller.js');
 const { verifyTokenUser, verifyAdmin, verifyTecnico, verifyFactura } = require('../middlewares/jkt.middleware.js');
 const { getAllRoles, getRol, createRol, deleteRol, updateRoles } = require('../controllers/task.controllers.js');
 const { validateSchema } = require('../middlewares/validator.middleware.js')
@@ -38,6 +38,9 @@ router.put("/passuser/:id/reset-password", (req, res, next) => {
     next();
 },
     verifyTokenUser, verifyAdmin, resetPassword);
+
+router.delete("/passuser/:id", verifyTokenUser, verifyAdmin, deleteUser);
+router.put("/passuser/:id/role", verifyTokenUser, verifyAdmin, updateUserRole);
 
 router.put("/cambiar-password", verifyTokenUser, resetPasswordUser);
 
