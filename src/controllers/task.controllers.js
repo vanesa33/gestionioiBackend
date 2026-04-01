@@ -340,30 +340,31 @@ const getAllIngresosSinFiltro = async (req, res, next) => {
 
 
 const getAllIngreso = async (req, res, next) => {    
-    const user_id = req.user.id;
-    console.log("user id recibido", user_id)
+  const user_id = req.user.id;
 
-    if (!user_id){
-        return res.status(400).json({ message: "user_id is nor defined"});
-    }
+  if (!user_id){
+    return res.status(400).json({ message: "user_id is not defined"});
+  }
 
-    try
-    {
-     const allIngreso = await pool.query(`
-  SELECT 
-    ingreso.*,
-    client.nombre,
-    client.apellido,
-    (client.nombre || ' ' || client.apellido) AS cliente_nombre
-  FROM ingreso
-  JOIN client ON ingreso.client_id = client.id
-`);
-     res.json(allIngreso.rows);
-    } catch (error){
-       next(error);
-    }
-    }; 
+  try {
+    const allIngreso = await pool.query(`
+      SELECT 
+        ingreso.*,
+        client.nombre,
+        client.apellido,
+        (client.nombre || ' ' || client.apellido) AS cliente_nombre
+      FROM ingreso
+      JOIN client ON ingreso.client_id = client.id
+      WHERE client.user_id = $1
+      ORDER BY ingreso.numorden DESC
+    `, [user_id]);
 
+    res.json(allIngreso.rows);
+
+  } catch (error){
+    next(error);
+  }
+};
 
     ///           obtener ingreso    /////
 
