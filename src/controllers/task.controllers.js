@@ -292,9 +292,18 @@ const getAllIngresosSinFiltro = async (req, res, next) => {
     //const user_id = req.user.id; // obtenido del token por el middleware
 
     const result = await pool.query(
-      `SELECT ingreso.*, client.nombre, client.apellido, client.telefono, client.mail,
-              client.calle, client.numero, client.piso, client.dto, client.provincia,
-              client.localidad, client.codpost,
+      `SELECT ingreso.*, 
+      client.nombre, 
+      client.apellido, 
+       (client.nombre || ' ' || client.apellido) AS cliente_nombre,
+      client.telefono, 
+      client.mail,
+      client.calle,
+      client.numero,
+      client.piso, client.dto,
+      client.provincia,              
+      client.localidad, 
+      client.codpost,
               users.username AS usuario_nombre
        FROM ingreso
     INNER JOIN client ON ingreso.client_id = client.id
