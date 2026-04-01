@@ -350,12 +350,16 @@ const getAllIngreso = async (req, res, next) => {
     try
     {
      const allIngreso = await pool.query(
-        `SELECT DISTINCT ON (ingreso.iid) ingreso.*, client.*
-         FROM ingreso
-         JOIN client ON ingreso.client_id = client.id
-         WHERE client.user_id = $1
-         ORDER BY ingreso.iid`,
-         [user_id]
+       SELECT 
+  ingreso.*,
+  client.nombre,
+  client.apellido,
+  (client.nombre || ' ' || client.apellido) AS cliente_nombre,
+  client.telefono,
+  users.username AS usuario_nombre
+FROM ingreso
+JOIN client ON ingreso.client_id = client.id
+LEFT JOIN users ON ingreso.user_id = users.ruid
     );  
      res.json(allIngreso.rows);
     } catch (error){
