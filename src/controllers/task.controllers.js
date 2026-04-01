@@ -349,18 +349,15 @@ const getAllIngreso = async (req, res, next) => {
 
     try
     {
-     const allIngreso = await pool.query(
-       `SELECT 
-  ingreso.*,
-  client.nombre,
-  client.apellido,
-  (client.nombre || ' ' || client.apellido) AS cliente_nombre,
-  client.telefono,
-  users.username AS usuario_nombre
-FROM ingreso
-JOIN client ON ingreso.client_id = client.id
-LEFT JOIN users ON ingreso.user_id = users.ruid`
-    );  
+     const allIngreso = await pool.query(`
+  SELECT 
+    ingreso.*,
+    client.nombre,
+    client.apellido,
+    (client.nombre || ' ' || client.apellido) AS cliente_nombre
+  FROM ingreso
+  JOIN client ON ingreso.client_id = client.id
+`);
      res.json(allIngreso.rows);
     } catch (error){
        next(error);
