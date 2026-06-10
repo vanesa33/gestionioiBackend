@@ -722,7 +722,7 @@ const updateIngreso = async (req, res, next) => {
     next(error);
   }
 };
-console.log("RESULT UPDATE:", result.rows[0]);
+
 /////   todas las ordenes   ///
 
 
