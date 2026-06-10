@@ -292,22 +292,15 @@ const getAllIngresosSinFiltro = async (req, res, next) => {
     //const user_id = req.user.id; // obtenido del token por el middleware
 
     const result = await pool.query(
-      `SELECT ingreso.*, 
-      client.nombre, 
-      client.apellido, 
-       (client.nombre || ' ' || client.apellido) AS cliente_nombre,
-      client.telefono, 
-      client.mail,
-      client.calle,
-      client.numero,
-      client.piso, client.dto,
-      client.provincia,              
-      client.localidad, 
-      client.codpost,
-              users.username AS usuario_nombre
+      `SELECT ingreso.*, client.nombre, client.apellido, client.telefono, client.mail,
+              client.calle, client.numero, client.piso, client.dto, client.provincia,
+              client.localidad, client.codpost,
+              users.username AS usuario_nombre,
+              tecnico.username AS tecnico_nombre
        FROM ingreso
     INNER JOIN client ON ingreso.client_id = client.id
     LEFT JOIN users ON ingreso.user_id = users.ruid
+    LEFT JOIN users tecnico ON ingreso.tecnico_id = tecnico.ruid
        ORDER BY ingreso.numorden DESC`
     );
 
@@ -318,59 +311,49 @@ const getAllIngresosSinFiltro = async (req, res, next) => {
 };
 
 
-/*const getAllIngreso = async (req, res, next) => {
-  try {
-    const user_id = req.user.id;
-    console.log("user id recibido", user_id);
-    const res = await getIngresosRequest();
-    console.log("📦 Datos traídos del backend:", res.data);
-    setIngresos(res.data);
-  } catch (error) {
-    console.error("❌ Error al obtener ingresos", error);
-  }
-};*/
 
 
-// 🔹 Todas las órdenes sin filtrar
-/*const getAllIngresosSinFiltro = async (req, res, next) => {
-  try {
-    const result = await pool.query(
-      `SELECT ingreso., client.
-       FROM ingreso
-       JOIN client ON ingreso.client_id = client.id
-       ORDER BY ingreso.iid DESC`
-    );
-    res.json(result.rows);
-  } catch (error) {
-    next(error);
-  }
-}; */
+
+
 
 
 
 const getAllIngreso = async (req, res, next) => {    
   const user_id = req.user.id;
+  console.log("user id recibido", user_id);
 
-  if (!user_id){
-    return res.status(400).json({ message: "user_id is not defined"});
+  if (!user_id) {
+    return res.status(400).json({ message: "user_id is not defined" });
   }
 
   try {
-    const allIngreso = await pool.query(`
-      SELECT 
+    const allIngreso = await pool.query(
+      `
+      SELECT DISTINCT ON (ingreso.iid)
         ingreso.*,
-        client.nombre,
-        client.apellido,
-        (client.nombre || ' ' || client.apellido) AS cliente_nombre
+        client.*
       FROM ingreso
       JOIN client ON ingreso.client_id = client.id
       WHERE client.user_id = $1
-      ORDER BY ingreso.numorden DESC
-    `, [user_id]);
+        AND (
+          ingreso.tipo_orden IS NULL
+          OR ingreso.tipo_orden IN ('reparacion', 'service')
+        )
+      ORDER BY ingreso.iid DESC
+      `,
+      [user_id]
+    );
 
-    res.json(allIngreso.rows);
+    const ingresosConVisual = allIngreso.rows.map((ingreso) => ({
+      ...ingreso,
+      numorden_visual: getNumeroVisual(
+        ingreso.numorden,
+        ingreso.tipo_orden
+      ),
+    }));
 
-  } catch (error){
+    res.json(ingresosConVisual);
+  } catch (error) {
     next(error);
   }
 };
@@ -379,34 +362,37 @@ const getAllIngreso = async (req, res, next) => {
 
 
 const getIngreso = async (req, res, next) => {
-  try {
-    const { id } = req.params;
-
-    const result = await pool.query(
-      `
-      SELECT 
-        ingreso.*,
-        client.nombre,
-        client.apellido,
-        client.telefono
-       
-      FROM ingreso
-      JOIN client ON ingreso.client_id = client.id
-      WHERE ingreso.iid = $1
-      `,
-      [id]
-    );
-
-    if (result.rows.length === 0) {
-      return res.status(404).json({ message: "Orden no encontrada" });
-    }
-
-    res.json(result.rows[0]);
-  } catch (error) {
-    console.error(error);
-    next(error);
-  }
-};
+        try {
+         
+         const {id} = req.params
+     
+         const result = await pool.query(
+            `SELECT ingreso.*, client.*,
+                    users.username AS usuario_nombre,
+                    tecnico.username AS tecnico_nombre
+             FROM ingreso 
+             JOIN client ON ingreso.client_id = client.id
+             LEFT JOIN users ON ingreso.user_id = users.ruid
+             LEFT JOIN users tecnico ON ingreso.tecnico_id = tecnico.ruid
+             WHERE ingreso.iid = $1`,
+             [id]
+            );
+      
+         if (result.rows.length === 0)
+           return res.status(404).json({
+             message: 'Task not found',
+             
+         });
+      
+           res.json(result.rows[0]);
+     
+        } catch (error) {
+     
+         next(error)
+         
+        }
+        
+     };
 /////          crear ingreso    /////////
 
 
@@ -427,7 +413,8 @@ const createIngreso = async (req, res, next) => {
       iva,
       presu,
       salida,
-      tipo_orden
+      tipo_orden,
+      tecnico_id
     } = req.body;
 
     const userId = req.user?.id || null;
@@ -491,10 +478,10 @@ const createIngreso = async (req, res, next) => {
     const result = await pool.query(
       `INSERT INTO ingreso (
         client_id, numorden, tipo_orden, equipo, falla, observa, fecha, nserie,
-        costo, imagenurl, repuesto, manoobra, total, iva, presu, salida, user_id
+        costo, imagenurl, repuesto, manoobra, total, iva, presu, salida, user_id, tecnico_id
       )
       VALUES (
-        $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17
+        $1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15,$16,$17,$18
       )
       RETURNING *`,
       [
@@ -514,7 +501,8 @@ const createIngreso = async (req, res, next) => {
         iva || null,
         presu || null,
         salida || null,
-        userId
+        userId,
+        tecnico_id || null
       ]
     );
 
@@ -576,7 +564,7 @@ const createIngreso = async (req, res, next) => {
    
    ///////       Actualizar ingreso  ///////
 
- const updateIngreso = async (req, res, next) => {
+const updateIngreso = async (req, res, next) => {
   try {
     // Confirmar base conectada
     const jwt_db = await pool.query("SELECT current_database()");
@@ -609,6 +597,7 @@ const createIngreso = async (req, res, next) => {
       presu,
       salida,
       client_id,
+      tecnico_id
     } = req.body;
 
     //  Helper: número o null
@@ -688,8 +677,9 @@ const createIngreso = async (req, res, next) => {
         iva = $11,
         presu = $12,
         salida = $13,
-        client_id = $14
-       WHERE iid = $15
+        client_id = $14,
+        tecnico_id = $15
+       WHERE iid = $16
        RETURNING *`,
       [
         equipo,
@@ -706,7 +696,7 @@ const createIngreso = async (req, res, next) => {
         presu || null,
         salidaValida,
         client_id,
-        id,
+        tecnico_id || null,
       ]
     );
 
