@@ -563,7 +563,7 @@ const createIngreso = async (req, res, next) => {
 };
    
    ///////       Actualizar ingreso  ///////
-console.log("BODY RECIBIDO:", req.body);
+
 console.log("TECNICO:", tecnico_id);
 const updateIngreso = async (req, res, next) => {
   try {
