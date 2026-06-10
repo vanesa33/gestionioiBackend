@@ -566,6 +566,7 @@ const createIngreso = async (req, res, next) => {
 
 const updateIngreso = async (req, res, next) => {
   try {
+           console.log("BODY RECIBIDO:", req.body);
     // Confirmar base conectada
     const jwt_db = await pool.query("SELECT current_database()");
     console.log("Base de datos conectada:", jwt_db.rows[0].current_database);
