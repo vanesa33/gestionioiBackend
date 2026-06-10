@@ -68,43 +68,28 @@ const getAllUsers = async (req, res) => {
   }
 };
 
-
- /*const getAllUsers = async (req, res, next) => {    
-
-    try
-    {
-     const allUser = await pool.query('SELECT * FROM users') 
-     console.log("entro a getAllUsers");
-     res.json(allUser.rows)
-    } catch (error){
-       next(error)
-    }
-    }; */
-
-/*const getAllUsers = async (req, res) => {
+const getTecnicos = async (req, res) => {
   try {
-    const users = await UserModel.findAll();
+    
+    const result = await pool.query(`
+      SELECT
+       u.ruid,
+       u.username
+      FROM users u
+      INNER JOIN roles r ON u.role_id = r.rid
+      WHERE r.name = 'tecnico'
+      ORDER BY u.username
+    `);
 
-    res.json({
-      ok: true,
-      users
-    });
+    res.json({result: result.rows});
   } catch (error) {
     console.error(error);
-    res.status(500).json({ message: "Error obteniendo usuarios" });
-  }
-};*/
+    res.status(500).json({ message: "Error al obtener técnicos" });
+  } 
+};
 
- /*const getAllUsers = async (req, res) => {
-  try {
-    const users = await User.findAll(); // Sequelize
-    // const users = await User.find(); // si usas Mongoose
-    res.json(users); // 🔥 devuelve un array, no un objeto con msg
-  } catch (error) {
-    console.error(error);
-    res.status(500).json({ message: "Error al obtener usuarios" });
-  }
-};*/
+
+
 
 const register = async(req, res) => {
     try {
