@@ -567,18 +567,23 @@ const createIngreso = async (req, res, next) => {
 
 const updateIngreso = async (req, res, next) => {
   try {
-           console.log("BODY RECIBIDO:", req.body);
-           console.log("TECNICO:", tecnico_id);
-    // Confirmar base conectada
+    console.log("BODY RECIBIDO:", req.body);
+
     const jwt_db = await pool.query("SELECT current_database()");
-    console.log("Base de datos conectada:", jwt_db.rows[0].current_database);
+    console.log(
+      "Base de datos conectada:",
+      jwt_db.rows[0].current_database
+    );
 
     const { id } = req.params;
+
     if (isNaN(id)) {
-      return res.status(400).json({ message: "ID inválido" });
+      return res.status(400).json({
+        message: "ID inválido",
+      });
     }
 
-    // Limpieza: "" → null
+    // Convertir "" a null
     for (let key in req.body) {
       if (req.body[key] === "") {
         req.body[key] = null;
@@ -600,10 +605,11 @@ const updateIngreso = async (req, res, next) => {
       presu,
       salida,
       client_id,
-      tecnico_id
+      tecnico_id,
     } = req.body;
 
-    //  Helper: número o null
+    console.log("TECNICO RECIBIDO:", tecnico_id);
+
     const toNumberOrNull = (v) =>
       v === null || v === undefined ? null : Number(v);
 
@@ -612,7 +618,7 @@ const updateIngreso = async (req, res, next) => {
     manoobra = toNumberOrNull(manoobra);
     total = toNumberOrNull(total);
 
-    //  Regla de negocio: GARANTÍA
+    // Garantía
     if (presu === "Sí") {
       costo = 0;
       repuesto = 0;
@@ -621,67 +627,66 @@ const updateIngreso = async (req, res, next) => {
       iva = "No";
     }
 
-    //  Normalizar salida
+    // Fecha salida
     const salidaValida =
       salida && salida.trim() !== ""
         ? new Date(salida).toISOString().split("T")[0]
         : null;
 
-    console.log("Datos procesados en update:", {
-      costo,
-      repuesto,
-      manoobra,
-      total,
-      iva,
-      presu,
-    });
-
     const ingresoActual = await pool.query(
-      "SELECT tipo_orden FROM ingreso WHERE iid = $1",
+      `SELECT tipo_orden, numorden
+       FROM ingreso
+       WHERE iid = $1`,
       [id]
     );
 
     if (ingresoActual.rowCount === 0) {
-      return res.status(404).json({ message: "Orden no encontrada" });
+      return res.status(404).json({
+        message: "Orden no encontrada",
+      });
     }
-    const { tipo_orden, numorden } = ingresoActual.rows[0];
 
-    //  Regla de negocio: Si es "service", ajustar campos   
+    const { tipo_orden, numorden } =
+      ingresoActual.rows[0];
+
+    // Si es SERVICE
     if (tipo_orden === "service") {
       falla = null;
       repuesto = 0;
     }
 
     const estadoIngreso = await pool.query(
-      "SELECT * FROM ingreso WHERE iid = $1",
+      `SELECT salida
+       FROM ingreso
+       WHERE iid = $1`,
       [id]
     );
-    if (estadoIngreso.rowCount === 0) {
-      return res.status(404).json({ message: "Orden no encontrada" });
-    }
+
     if (estadoIngreso.rows[0].salida) {
-      return res
-        .status(400)
-        .json({ message: "No se puede editar una orden cerrada." });
-    } 
-    //  UPDATE
+      return res.status(400).json({
+        message:
+          "No se puede editar una orden cerrada.",
+      });
+    }
+
     const result = await pool.query(
-      `UPDATE ingreso SET
-        equipo = $1,
-        falla = $2,
-        observa = $3,
-        fecha = $4,
-        nserie = $5,
-        costo = $6,
-        imagenurl = $7,
-        repuesto = $8,
-        manoobra = $9,
-        total = $10,
-        iva = $11,
-        presu = $12,
-        salida = $13,
-        client_id = $14,
-        tecnico_id = $15
+      `UPDATE ingreso
+       SET
+         equipo = $1,
+         falla = $2,
+         observa = $3,
+         fecha = $4,
+         nserie = $5,
+         costo = $6,
+         imagenurl = $7,
+         repuesto = $8,
+         manoobra = $9,
+         total = $10,
+         iva = $11,
+         presu = $12,
+         salida = $13,
+         client_id = $14,
+         tecnico_id = $15
        WHERE iid = $16
        RETURNING *`,
       [
@@ -700,23 +705,30 @@ const updateIngreso = async (req, res, next) => {
         salidaValida,
         client_id,
         tecnico_id || null,
+        id,
       ]
     );
 
-    const ingreso = result.rows[0];
+    if (result.rowCount === 0) {
+      return res.status(404).json({
+        message: "Orden no encontrada",
+      });
+    }
 
-    ingresoActualizado.numorden_visual = getNumeroVisual(
-      numorden,
-      tipo_orden
+    const ingresoActualizado = {
+      ...result.rows[0],
+      numorden_visual: getNumeroVisual(
+        numorden,
+        tipo_orden
+      ),
+    };
+
+    console.log(
+      "ORDEN ACTUALIZADA:",
+      ingresoActualizado
     );
 
     return res.json(ingresoActualizado);
-
-    if (result.rowCount === 0) {
-      return res.status(404).json({ message: "Orden no encontrada" });
-    }
-
-    return res.json(result.rows[0]);
   } catch (error) {
     console.error("Error en UPDATE:", error);
     next(error);
