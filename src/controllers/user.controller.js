@@ -448,6 +448,7 @@ module.exports = {
     resetPasswordUser,
     resetPassword,
     deleteUser,
-    updateUserRole
+    updateUserRole,
+    getTecnicos
     
 };
