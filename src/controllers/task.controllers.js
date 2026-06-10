@@ -563,7 +563,8 @@ const createIngreso = async (req, res, next) => {
 };
    
    ///////       Actualizar ingreso  ///////
-
+console.log("BODY RECIBIDO:", req.body);
+console.log("TECNICO:", tecnico_id);
 const updateIngreso = async (req, res, next) => {
   try {
            console.log("BODY RECIBIDO:", req.body);
@@ -708,7 +709,7 @@ const updateIngreso = async (req, res, next) => {
       tipo_orden
     );
 
-    return res.jeson(ingresoActualizado);
+    return res.json(ingresoActualizado);
 
     if (result.rowCount === 0) {
       return res.status(404).json({ message: "Orden no encontrada" });
@@ -720,6 +721,7 @@ const updateIngreso = async (req, res, next) => {
     next(error);
   }
 };
+console.log("RESULT UPDATE:", result.rows[0]);
 /////   todas las ordenes   ///
 
 
