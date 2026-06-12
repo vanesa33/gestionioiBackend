@@ -440,14 +440,14 @@ const createIngreso = async (req, res, next) => {
     manoobra = toNumberOrNull(manoobra);
     total = toNumberOrNull(total);
 
-    // 🔹 Regla de negocio: garantía
+   /* // 🔹 Regla de negocio: garantía
     if (presu === "Sí") {
       costo = 0;
       repuesto = 0;
       manoobra = 0;
       total = 0;
       iva = "No";
-    }
+    }*/
 
     // 🔹 Buscar último número de orden del año
     const resultLast = await pool.query(
